@@ -16,6 +16,90 @@
  * - 客户端：✅ 支持（浏览器环境）
  */
 
+/**
+ * IndexedDB 相关类型定义（浏览器 API，在 Deno 服务端不可用）
+ */
+interface IDBDatabase {
+  name: string;
+  version: number;
+  objectStoreNames: DOMStringList;
+  close(): void;
+  transaction(
+    storeNames: string | string[],
+    mode?: "readonly" | "readwrite" | "versionchange",
+  ): IDBTransaction;
+  createObjectStore(
+    name: string,
+    options?: IDBObjectStoreParameters,
+  ): IDBObjectStore;
+  deleteObjectStore(name: string): void;
+}
+
+interface IDBOpenDBRequest extends IDBRequest {
+  onupgradeneeded:
+    | ((this: IDBOpenDBRequest, ev: IDBVersionChangeEvent) => void)
+    | null;
+  onblocked: ((this: IDBOpenDBRequest, ev: Event) => void) | null;
+}
+
+interface IDBVersionChangeEvent extends Event {
+  oldVersion: number;
+  newVersion: number | null;
+}
+
+interface IDBRequest extends EventTarget {
+  result: any;
+  error: DOMException | null;
+  onsuccess: ((this: IDBRequest, ev: Event) => void) | null;
+  onerror: ((this: IDBRequest, ev: Event) => void) | null;
+}
+
+interface IDBTransaction extends EventTarget {
+  objectStore(name: string): IDBObjectStore;
+  mode: "readonly" | "readwrite" | "versionchange";
+  oncomplete: ((this: IDBTransaction, ev: Event) => void) | null;
+  onerror: ((this: IDBTransaction, ev: Event) => void) | null;
+  onabort: ((this: IDBTransaction, ev: Event) => void) | null;
+}
+
+interface IDBObjectStore {
+  add(value: any, key?: IDBValidKey): IDBRequest;
+  put(value: any, key?: IDBValidKey): IDBRequest;
+  get(key: IDBValidKey): IDBRequest;
+  delete(key: IDBValidKey): IDBRequest;
+  clear(): IDBRequest;
+  getAllKeys(): IDBRequest;
+  getAll(query?: IDBValidKey | IDBKeyRange | null, count?: number): IDBRequest;
+}
+
+interface IDBKeyRange {
+  lower: any;
+  upper: any;
+  lowerOpen: boolean;
+  upperOpen: boolean;
+}
+
+type IDBValidKey = string | number | Date | ArrayBuffer | IDBArrayKey;
+type IDBArrayKey = IDBValidKey[];
+
+interface IDBObjectStoreParameters {
+  keyPath?: string | string[] | null;
+  autoIncrement?: boolean;
+}
+
+interface DOMStringList {
+  length: number;
+  contains(string: string): boolean;
+  item(index: number): string | null;
+}
+
+/**
+ * IndexedDB 全局对象类型
+ */
+interface IndexedDB {
+  open(name: string, version?: number): IDBOpenDBRequest;
+  deleteDatabase(name: string): IDBRequest;
+}
 
 /**
  * 存储选项
@@ -170,10 +254,12 @@ export class IndexedDBAdapter implements BrowserStorageAdapter {
     }
 
     return new Promise((resolve, reject) => {
-      const request = globalThis.indexedDB.open(
+      // 使用类型断言，因为 Deno 的类型定义可能不包含 indexedDB
+      const indexedDB = (globalThis as any).indexedDB as IndexedDB;
+      const request = indexedDB.open(
         this.dbName,
         this.version,
-      );
+      ) as IDBOpenDBRequest;
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
