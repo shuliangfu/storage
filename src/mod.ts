@@ -12,9 +12,19 @@
  * - 批量操作
  *
  * 环境兼容性：
- * - 服务端：✅ 支持（Deno 运行时，文件存储功能）
+ * - 服务端：✅ 支持（Deno 和 Bun 运行时，文件存储功能）
  * - 客户端：✅ 支持（浏览器环境，通过 `jsr:@dreamer/storage/client` 使用）
  */
+
+// 导入 runtime-adapter 提供的文件系统 API（兼容 Deno 和 Bun）
+import {
+  mkdir,
+  readdir,
+  readFile,
+  remove,
+  stat,
+  writeFile,
+} from "@dreamer/runtime-adapter";
 
 /**
  * 存储选项
@@ -73,9 +83,12 @@ export class FileStorageAdapter implements StorageAdapter {
    */
   private async ensureBasePath(): Promise<void> {
     try {
-      await Deno.mkdir(this.basePath, { recursive: true });
-    } catch (error) {
-      if (!(error instanceof Deno.errors.AlreadyExists)) {
+      await mkdir(this.basePath, { recursive: true });
+    } catch (error: any) {
+      // 检查是否是目录已存在的错误（Deno 和 Bun 的错误码不同）
+      if (
+        error?.code !== "EEXIST" && !error?.message?.includes("already exists")
+      ) {
         throw error;
       }
     }
@@ -96,9 +109,10 @@ export class FileStorageAdapter implements StorageAdapter {
   async read(key: string): Promise<Uint8Array | null> {
     try {
       const path = this.getFullPath(key);
-      return await Deno.readFile(path);
-    } catch (error) {
-      if (error instanceof Deno.errors.NotFound) {
+      return await readFile(path);
+    } catch (error: any) {
+      // 检查是否是文件不存在的错误（Deno 和 Bun 的错误码不同）
+      if (error?.code === "ENOENT" || error?.name === "NotFound") {
         return null;
       }
       throw error;
@@ -113,9 +127,9 @@ export class FileStorageAdapter implements StorageAdapter {
     // 确保目录存在
     const dir = path.substring(0, path.lastIndexOf("/"));
     if (dir) {
-      await Deno.mkdir(dir, { recursive: true });
+      await mkdir(dir, { recursive: true });
     }
-    await Deno.writeFile(path, data);
+    await writeFile(path, data);
   }
 
   /**
@@ -124,9 +138,10 @@ export class FileStorageAdapter implements StorageAdapter {
   async delete(key: string): Promise<void> {
     try {
       const path = this.getFullPath(key);
-      await Deno.remove(path);
-    } catch (error) {
-      if (!(error instanceof Deno.errors.NotFound)) {
+      await remove(path);
+    } catch (error: any) {
+      // 检查是否是文件不存在的错误（Deno 和 Bun 的错误码不同）
+      if (error?.code !== "ENOENT" && error?.name !== "NotFound") {
         throw error;
       }
     }
@@ -138,8 +153,8 @@ export class FileStorageAdapter implements StorageAdapter {
   async exists(key: string): Promise<boolean> {
     try {
       const path = this.getFullPath(key);
-      const stat = await Deno.stat(path);
-      return stat.isFile;
+      const fileStat = await stat(path);
+      return fileStat.isFile;
     } catch {
       return false;
     }
@@ -155,7 +170,8 @@ export class FileStorageAdapter implements StorageAdapter {
 
     async function walkDir(dir: string, relativePrefix: string): Promise<void> {
       try {
-        for await (const entry of Deno.readDir(dir)) {
+        const entries = await readdir(dir);
+        for (const entry of entries) {
           const fullPath = `${dir}/${entry.name}`;
           const relativePath = relativePrefix
             ? `${relativePrefix}/${entry.name}`
@@ -167,8 +183,9 @@ export class FileStorageAdapter implements StorageAdapter {
             await walkDir(fullPath, relativePath);
           }
         }
-      } catch (error) {
-        if (!(error instanceof Deno.errors.NotFound)) {
+      } catch (error: any) {
+        // 检查是否是目录不存在的错误（Deno 和 Bun 的错误码不同）
+        if (error?.code !== "ENOENT" && error?.name !== "NotFound") {
           throw error;
         }
       }
@@ -264,7 +281,7 @@ export class FileStorage {
   async mkdir(path: string): Promise<void> {
     if (this.adapter instanceof FileStorageAdapter) {
       const fullPath = `${this.adapter.basePath}/${path}`;
-      await Deno.mkdir(fullPath, { recursive: true });
+      await mkdir(fullPath, { recursive: true });
     } else {
       throw new Error("mkdir is only supported with FileStorageAdapter");
     }
@@ -277,9 +294,10 @@ export class FileStorage {
     if (this.adapter instanceof FileStorageAdapter) {
       const fullPath = `${this.adapter.basePath}/${path}`;
       try {
-        await Deno.remove(fullPath, { recursive: true });
-      } catch (error) {
-        if (!(error instanceof Deno.errors.NotFound)) {
+        await remove(fullPath, { recursive: true });
+      } catch (error: any) {
+        // 检查是否是目录不存在的错误（Deno 和 Bun 的错误码不同）
+        if (error?.code !== "ENOENT" && error?.name !== "NotFound") {
           throw error;
         }
       }
