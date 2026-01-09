@@ -1,8 +1,13 @@
 # @dreamer/storage
 
-一个用于 Deno 的存储工具库，提供统一的存储接口，支持服务端文件存储。
+> 一个兼容 Deno 和 Bun 的存储工具库，提供统一的存储接口，支持服务端文件存储
 
-## 功能
+[![JSR](https://jsr.io/badges/@dreamer/storage)](https://jsr.io/@dreamer/storage)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+---
+
+## 🎯 功能
 
 存储工具库，提供统一的存储抽象层，支持文件系统存储。
 
@@ -28,7 +33,7 @@
 
 **所有 @dreamer/* 库都遵循以下原则**：
 
-- **主包（@dreamer/xxx）**：用于服务端（Deno 运行时）
+- **主包（@dreamer/xxx）**：用于服务端（兼容 Deno 和 Bun 运行时）
 - **客户端子包（@dreamer/xxx/client）**：用于客户端（浏览器环境）
 
 这样可以：
@@ -44,10 +49,6 @@
 - **缓存**：文件缓存、数据缓存
 - **日志存储**：日志文件管理
 
-## 优先级
-
-⭐⭐⭐⭐
-
 ## 安装
 
 ```bash
@@ -56,12 +57,14 @@ deno add jsr:@dreamer/storage
 
 ## 环境兼容性
 
-- **Deno 版本**：要求 Deno 2.5 或更高版本
-- **服务端**：✅ 支持（Deno 运行时，文件存储功能，使用文件系统 API）
+- **运行时要求**：Deno 2.5+ 或 Bun 1.0+
+- **服务端**：✅ 支持（兼容 Deno 和 Bun 运行时，文件存储功能，使用文件系统 API）
 - **客户端**：✅ 支持（浏览器环境，通过 `jsr:@dreamer/storage/client` 使用浏览器存储 API）
 - **依赖**：无外部依赖（纯 TypeScript 实现）
 
-## 使用示例
+---
+
+## 🚀 快速开始
 
 ### 文件存储
 
@@ -215,10 +218,30 @@ interface StorageOptions {
 
 客户端存储支持请查看 [client/README.md](./src/client/README.md)。
 
-## 备注
+## 📝 备注
 
 - **服务端和客户端分离**：通过 `/client` 子路径明确区分服务端和客户端代码
 - **统一接口**：服务端和客户端使用相同的 API 接口，降低学习成本
 - **适配器模式**：支持多种存储后端，易于扩展
 - **类型安全**：完整的 TypeScript 类型支持
 - **无外部依赖**：纯 TypeScript 实现，不依赖外部库
+
+---
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+---
+
+## 📄 许可证
+
+MIT License - 详见 [LICENSE.md](./LICENSE.md)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by Dreamer Team**
+
+</div>

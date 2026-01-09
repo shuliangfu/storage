@@ -1,6 +1,11 @@
 # @dreamer/storage/client
 
-一个用于浏览器的存储工具库，提供统一的存储接口，支持 localStorage、sessionStorage 和 IndexedDB。
+> 一个用于浏览器的存储工具库，提供统一的存储接口，支持 localStorage、sessionStorage 和 IndexedDB
+
+[![JSR](https://jsr.io/badges/@dreamer/storage/client)](https://jsr.io/@dreamer/storage/client)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+---
 
 ## 服务端支持
 
@@ -40,7 +45,7 @@ deno add jsr:@dreamer/storage/client
 - **环境**：✅ 支持（浏览器环境）
 - **依赖**：无外部依赖
 
-## 使用示例
+## 🚀 快速开始
 
 ### 浏览器存储封装
 
@@ -219,9 +224,31 @@ interface StorageOptions {
 - **异步操作**：所有操作都是异步的，不阻塞主线程
 - **内存管理**：及时清理过期数据，避免内存泄漏
 
-## 备注
+---
+
+## 📝 备注
 
 - **统一接口**：与服务端使用相同的 API 接口，降低学习成本
 - **适配器模式**：支持多种存储后端，易于扩展
 - **类型安全**：完整的 TypeScript 类型支持
 - **无外部依赖**：纯 TypeScript 实现
+
+---
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+---
+
+## 📄 许可证
+
+MIT License - 详见 [LICENSE.md](../../../LICENSE.md)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by Dreamer Team**
+
+</div>
