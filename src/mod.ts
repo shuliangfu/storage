@@ -25,6 +25,7 @@ import {
   stat,
   writeFile,
 } from "@dreamer/runtime-adapter";
+import type { ServiceContainer } from "@dreamer/service";
 
 /**
  * 存储选项
@@ -454,8 +455,6 @@ export class KeyValueStorage {
     return result;
   }
 }
-
-import type { ServiceContainer } from "@dreamer/service";
 
 /**
  * 存储管理器配置选项
