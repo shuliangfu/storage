@@ -32,4 +32,8 @@ tests/data/
 tests/**/data/
 .snapshots/
 .npmrc
-kv-storage
+
+# 测试生成的存储目录
+kv-storage/
+storage/
+store/

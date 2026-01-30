@@ -16,7 +16,8 @@ import {
 } from "../src/mod.ts";
 
 describe("Storage", () => {
-  const testDir = join(cwd(), "tests", "output");
+  // 测试输出目录统一放在 tests/data 下
+  const testDir = join(cwd(), "tests", "data");
 
   describe("FileStorageAdapter", () => {
     it("应该创建适配器", () => {
@@ -448,23 +449,40 @@ describe("Storage", () => {
 });
 
 describe("StorageManager", () => {
+  // StorageManager 测试使用的基础目录
+  const managerTestDir = join(cwd(), "tests", "data", "manager");
+  const managerKVTestDir = join(cwd(), "tests", "data", "manager-kv");
+
   it("应该创建 StorageManager 实例", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
     expect(manager).toBeInstanceOf(StorageManager);
   });
 
   it("应该获取默认管理器名称", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
     expect(manager.getName()).toBe("default");
   });
 
   it("应该获取自定义管理器名称", () => {
-    const manager = new StorageManager({ name: "custom" });
+    const manager = new StorageManager({
+      name: "custom",
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
     expect(manager.getName()).toBe("custom");
   });
 
   it("应该获取或创建文件存储", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
     const storage1 = manager.getFileStorage("files");
     const storage2 = manager.getFileStorage("files");
 
@@ -473,7 +491,10 @@ describe("StorageManager", () => {
   });
 
   it("应该获取或创建键值存储", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
     const storage1 = manager.getKVStorage("cache");
     const storage2 = manager.getKVStorage("cache");
 
@@ -482,7 +503,10 @@ describe("StorageManager", () => {
   });
 
   it("应该检查存储是否存在", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
 
     expect(manager.hasFileStorage("files")).toBe(false);
     expect(manager.hasKVStorage("cache")).toBe(false);
@@ -495,7 +519,10 @@ describe("StorageManager", () => {
   });
 
   it("应该移除存储", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
 
     manager.getFileStorage("files");
     manager.getKVStorage("cache");
@@ -508,7 +535,10 @@ describe("StorageManager", () => {
   });
 
   it("应该获取所有存储名称", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
 
     manager.getFileStorage("files1");
     manager.getFileStorage("files2");
@@ -525,7 +555,10 @@ describe("StorageManager", () => {
   });
 
   it("应该清空所有存储实例", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: managerTestDir,
+      defaultKVBasePath: managerKVTestDir,
+    });
 
     manager.getFileStorage("files");
     manager.getKVStorage("cache");
@@ -538,8 +571,15 @@ describe("StorageManager", () => {
 });
 
 describe("StorageManager ServiceContainer 集成", () => {
+  // ServiceContainer 集成测试使用的基础目录
+  const serviceTestDir = join(cwd(), "tests", "data", "service");
+  const serviceKVTestDir = join(cwd(), "tests", "data", "service-kv");
+
   it("应该设置和获取服务容器", () => {
-    const manager = new StorageManager();
+    const manager = new StorageManager({
+      defaultBasePath: serviceTestDir,
+      defaultKVBasePath: serviceKVTestDir,
+    });
     const container = new ServiceContainer();
 
     expect(manager.getContainer()).toBeUndefined();
@@ -550,7 +590,11 @@ describe("StorageManager ServiceContainer 集成", () => {
 
   it("应该从服务容器获取 StorageManager", () => {
     const container = new ServiceContainer();
-    const manager = new StorageManager({ name: "test" });
+    const manager = new StorageManager({
+      name: "test",
+      defaultBasePath: serviceTestDir,
+      defaultKVBasePath: serviceKVTestDir,
+    });
     manager.setContainer(container);
 
     container.registerSingleton("storage:test", () => manager);
@@ -568,10 +612,18 @@ describe("StorageManager ServiceContainer 集成", () => {
   it("应该支持多个 StorageManager 实例", () => {
     const container = new ServiceContainer();
 
-    const localManager = new StorageManager({ name: "local" });
+    const localManager = new StorageManager({
+      name: "local",
+      defaultBasePath: serviceTestDir,
+      defaultKVBasePath: serviceKVTestDir,
+    });
     localManager.setContainer(container);
 
-    const cloudManager = new StorageManager({ name: "cloud" });
+    const cloudManager = new StorageManager({
+      name: "cloud",
+      defaultBasePath: serviceTestDir,
+      defaultKVBasePath: serviceKVTestDir,
+    });
     cloudManager.setContainer(container);
 
     container.registerSingleton("storage:local", () => localManager);
@@ -583,18 +635,32 @@ describe("StorageManager ServiceContainer 集成", () => {
 });
 
 describe("createStorageManager 工厂函数", () => {
+  // 工厂函数测试使用的基础目录
+  const factoryTestDir = join(cwd(), "tests", "data", "factory");
+  const factoryKVTestDir = join(cwd(), "tests", "data", "factory-kv");
+
   it("应该创建 StorageManager 实例", () => {
-    const manager = createStorageManager();
+    const manager = createStorageManager({
+      defaultBasePath: factoryTestDir,
+      defaultKVBasePath: factoryKVTestDir,
+    });
     expect(manager).toBeInstanceOf(StorageManager);
   });
 
   it("应该使用默认名称", () => {
-    const manager = createStorageManager();
+    const manager = createStorageManager({
+      defaultBasePath: factoryTestDir,
+      defaultKVBasePath: factoryKVTestDir,
+    });
     expect(manager.getName()).toBe("default");
   });
 
   it("应该使用自定义名称", () => {
-    const manager = createStorageManager({ name: "custom" });
+    const manager = createStorageManager({
+      name: "custom",
+      defaultBasePath: factoryTestDir,
+      defaultKVBasePath: factoryKVTestDir,
+    });
     expect(manager.getName()).toBe("custom");
   });
 
@@ -603,7 +669,12 @@ describe("createStorageManager 工厂函数", () => {
 
     container.registerSingleton(
       "storage:main",
-      () => createStorageManager({ name: "main" }),
+      () =>
+        createStorageManager({
+          name: "main",
+          defaultBasePath: factoryTestDir,
+          defaultKVBasePath: factoryKVTestDir,
+        }),
     );
 
     const manager = container.get<StorageManager>("storage:main");
@@ -613,8 +684,8 @@ describe("createStorageManager 工厂函数", () => {
 
   it("应该支持自定义路径", () => {
     const manager = createStorageManager({
-      defaultBasePath: "./custom-storage",
-      defaultKVBasePath: "./custom-kv",
+      defaultBasePath: join(cwd(), "tests", "data", "custom-storage"),
+      defaultKVBasePath: join(cwd(), "tests", "data", "custom-kv"),
     });
 
     expect(manager).toBeInstanceOf(StorageManager);
