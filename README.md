@@ -3,7 +3,7 @@
 > 一个兼容 Deno 和 Bun 的存储工具库，提供统一的存储接口，支持服务端文件存储
 
 [![JSR](https://jsr.io/badges/@dreamer/storage)](https://jsr.io/@dreamer/storage)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
 
 ---
 
@@ -28,15 +28,20 @@
   - 文件系统适配器（默认）
   - 可扩展的适配器接口
   - 支持自定义存储后端
+- **服务容器集成**：
+  - 支持 `@dreamer/service` 依赖注入
+  - StorageManager 管理多个存储实例
+  - 提供 `createStorageManager` 工厂函数
 
 ## 设计原则
 
-**所有 @dreamer/* 库都遵循以下原则**：
+__所有 @dreamer/_ 库都遵循以下原则_*：
 
 - **主包（@dreamer/xxx）**：用于服务端（兼容 Deno 和 Bun 运行时）
 - **客户端子包（@dreamer/xxx/client）**：用于客户端（浏览器环境）
 
 这样可以：
+
 - 明确区分服务端和客户端代码
 - 避免在客户端代码中引入服务端依赖
 - 提供更好的类型安全和代码提示
@@ -57,9 +62,10 @@ deno add jsr:@dreamer/storage
 
 ## 环境兼容性
 
-- **运行时要求**：Deno 2.5+ 或 Bun 1.0+
+- **运行时要求**：Deno 2.6+ 或 Bun 1.3.5
 - **服务端**：✅ 支持（兼容 Deno 和 Bun 运行时，文件存储功能，使用文件系统 API）
-- **客户端**：✅ 支持（浏览器环境，通过 `jsr:@dreamer/storage/client` 使用浏览器存储 API）
+- **客户端**：✅ 支持（浏览器环境，通过 `jsr:@dreamer/storage/client`
+  使用浏览器存储 API）
 - **依赖**：无外部依赖（纯 TypeScript 实现）
 
 ---
@@ -142,7 +148,7 @@ await kv.clear();
 ### 存储适配器
 
 ```typescript
-import { StorageAdapter, FileStorageAdapter } from "jsr:@dreamer/storage";
+import { FileStorageAdapter, StorageAdapter } from "jsr:@dreamer/storage";
 
 // 使用默认的文件系统适配器
 const adapter = new FileStorageAdapter({
@@ -206,6 +212,49 @@ interface StorageOptions {
   [key: string]: any;
 }
 ```
+
+## 🔗 ServiceContainer 集成
+
+### 使用 createStorageManager 工厂函数
+
+```typescript
+import { ServiceContainer } from "@dreamer/service";
+import { createStorageManager, StorageManager } from "@dreamer/storage";
+
+// 创建服务容器
+const container = new ServiceContainer();
+
+// 注册 StorageManager
+container.registerSingleton(
+  "storage:main",
+  () => createStorageManager({ name: "main" }),
+);
+
+// 获取 StorageManager
+const manager = container.get<StorageManager>("storage:main");
+
+// 使用存储
+const fileStorage = manager.getFileStorage("uploads");
+const kvStorage = manager.getKVStorage("cache");
+```
+
+### StorageManager API
+
+| 方法                              | 说明                 |
+| --------------------------------- | -------------------- |
+| `getName()`                       | 获取管理器名称       |
+| `setContainer(container)`         | 设置服务容器         |
+| `getContainer()`                  | 获取服务容器         |
+| `fromContainer(container, name?)` | 从服务容器获取实例   |
+| `getFileStorage(name, basePath?)` | 获取或创建文件存储   |
+| `getKVStorage(name, basePath?)`   | 获取或创建键值存储   |
+| `hasFileStorage(name)`            | 检查文件存储是否存在 |
+| `hasKVStorage(name)`              | 检查键值存储是否存在 |
+| `removeFileStorage(name)`         | 移除文件存储         |
+| `removeKVStorage(name)`           | 移除键值存储         |
+| `getFileStorageNames()`           | 获取所有文件存储名称 |
+| `getKVStorageNames()`             | 获取所有键值存储名称 |
+| `clear()`                         | 清空所有存储实例     |
 
 ## 性能优化
 

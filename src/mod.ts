@@ -454,3 +454,189 @@ export class KeyValueStorage {
     return result;
   }
 }
+
+import type { ServiceContainer } from "@dreamer/service";
+
+/**
+ * 存储管理器配置选项
+ */
+export interface StorageManagerOptions {
+  /** 管理器名称（用于服务容器识别） */
+  name?: string;
+  /** 默认文件存储基础路径 */
+  defaultBasePath?: string;
+  /** 默认键值存储基础路径 */
+  defaultKVBasePath?: string;
+}
+
+/**
+ * 存储管理器
+ *
+ * 管理多个 FileStorage 和 KeyValueStorage 实例
+ */
+export class StorageManager {
+  /** 文件存储实例映射表 */
+  private fileStorages: Map<string, FileStorage> = new Map();
+  /** 键值存储实例映射表 */
+  private kvStorages: Map<string, KeyValueStorage> = new Map();
+  /** 默认文件存储基础路径 */
+  private defaultBasePath: string;
+  /** 默认键值存储基础路径 */
+  private defaultKVBasePath: string;
+  /** 服务容器实例 */
+  private container?: ServiceContainer;
+  /** 管理器名称 */
+  private readonly managerName: string;
+
+  /**
+   * 创建存储管理器实例
+   * @param options 管理器配置选项
+   */
+  constructor(options: StorageManagerOptions = {}) {
+    this.managerName = options.name || "default";
+    this.defaultBasePath = options.defaultBasePath || "./storage";
+    this.defaultKVBasePath = options.defaultKVBasePath || "./kv-storage";
+  }
+
+  /**
+   * 获取管理器名称
+   * @returns 管理器名称
+   */
+  getName(): string {
+    return this.managerName;
+  }
+
+  /**
+   * 设置服务容器
+   * @param container 服务容器实例
+   */
+  setContainer(container: ServiceContainer): void {
+    this.container = container;
+  }
+
+  /**
+   * 获取服务容器
+   * @returns 服务容器实例，如果未设置则返回 undefined
+   */
+  getContainer(): ServiceContainer | undefined {
+    return this.container;
+  }
+
+  /**
+   * 从服务容器创建 StorageManager 实例
+   * @param container 服务容器实例
+   * @param name 管理器名称（默认 "default"）
+   * @returns 关联了服务容器的 StorageManager 实例
+   */
+  static fromContainer(
+    container: ServiceContainer,
+    name = "default",
+  ): StorageManager | undefined {
+    const serviceName = `storage:${name}`;
+    return container.tryGet<StorageManager>(serviceName);
+  }
+
+  /**
+   * 获取或创建文件存储
+   * @param name 存储名称
+   * @param basePath 基础路径（可选，未提供时使用默认路径加名称）
+   * @returns FileStorage 实例
+   */
+  getFileStorage(name: string, basePath?: string): FileStorage {
+    let storage = this.fileStorages.get(name);
+    if (!storage) {
+      storage = new FileStorage({
+        basePath: basePath || `${this.defaultBasePath}/${name}`,
+      });
+      this.fileStorages.set(name, storage);
+    }
+    return storage;
+  }
+
+  /**
+   * 获取或创建键值存储
+   * @param name 存储名称
+   * @param basePath 基础路径（可选，未提供时使用默认路径加名称）
+   * @returns KeyValueStorage 实例
+   */
+  getKVStorage(name: string, basePath?: string): KeyValueStorage {
+    let storage = this.kvStorages.get(name);
+    if (!storage) {
+      storage = new KeyValueStorage({
+        basePath: basePath || `${this.defaultKVBasePath}/${name}`,
+      });
+      this.kvStorages.set(name, storage);
+    }
+    return storage;
+  }
+
+  /**
+   * 检查是否存在指定名称的文件存储
+   * @param name 存储名称
+   * @returns 是否存在
+   */
+  hasFileStorage(name: string): boolean {
+    return this.fileStorages.has(name);
+  }
+
+  /**
+   * 检查是否存在指定名称的键值存储
+   * @param name 存储名称
+   * @returns 是否存在
+   */
+  hasKVStorage(name: string): boolean {
+    return this.kvStorages.has(name);
+  }
+
+  /**
+   * 移除文件存储
+   * @param name 存储名称
+   */
+  removeFileStorage(name: string): void {
+    this.fileStorages.delete(name);
+  }
+
+  /**
+   * 移除键值存储
+   * @param name 存储名称
+   */
+  removeKVStorage(name: string): void {
+    this.kvStorages.delete(name);
+  }
+
+  /**
+   * 获取所有文件存储名称
+   * @returns 存储名称数组
+   */
+  getFileStorageNames(): string[] {
+    return Array.from(this.fileStorages.keys());
+  }
+
+  /**
+   * 获取所有键值存储名称
+   * @returns 存储名称数组
+   */
+  getKVStorageNames(): string[] {
+    return Array.from(this.kvStorages.keys());
+  }
+
+  /**
+   * 清空所有存储实例
+   */
+  clear(): void {
+    this.fileStorages.clear();
+    this.kvStorages.clear();
+  }
+}
+
+/**
+ * 创建 StorageManager 的工厂函数
+ * 用于服务容器注册
+ * @param options 存储管理器配置选项
+ * @returns StorageManager 实例
+ */
+export function createStorageManager(
+  options?: StorageManagerOptions,
+): StorageManager {
+  return new StorageManager(options);
+}

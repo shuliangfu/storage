@@ -6,10 +6,13 @@ import { describe, expect, it } from "@dreamer/test";
 // 使用 Node.js 兼容的 path 模块（Bun 和 Deno 都支持）
 import { cwd } from "@dreamer/runtime-adapter";
 import { join } from "node:path";
+import { ServiceContainer } from "@dreamer/service";
 import {
+  createStorageManager,
   FileStorage,
   FileStorageAdapter,
   KeyValueStorage,
+  StorageManager,
 } from "../src/mod.ts";
 
 describe("Storage", () => {
@@ -441,5 +444,179 @@ describe("Storage", () => {
       const storage = new KeyValueStorage({ adapter });
       expect(storage).toBeTruthy();
     });
+  });
+});
+
+describe("StorageManager", () => {
+  it("应该创建 StorageManager 实例", () => {
+    const manager = new StorageManager();
+    expect(manager).toBeInstanceOf(StorageManager);
+  });
+
+  it("应该获取默认管理器名称", () => {
+    const manager = new StorageManager();
+    expect(manager.getName()).toBe("default");
+  });
+
+  it("应该获取自定义管理器名称", () => {
+    const manager = new StorageManager({ name: "custom" });
+    expect(manager.getName()).toBe("custom");
+  });
+
+  it("应该获取或创建文件存储", () => {
+    const manager = new StorageManager();
+    const storage1 = manager.getFileStorage("files");
+    const storage2 = manager.getFileStorage("files");
+
+    expect(storage1).toBeInstanceOf(FileStorage);
+    expect(storage1).toBe(storage2); // 应该返回同一个实例
+  });
+
+  it("应该获取或创建键值存储", () => {
+    const manager = new StorageManager();
+    const storage1 = manager.getKVStorage("cache");
+    const storage2 = manager.getKVStorage("cache");
+
+    expect(storage1).toBeInstanceOf(KeyValueStorage);
+    expect(storage1).toBe(storage2); // 应该返回同一个实例
+  });
+
+  it("应该检查存储是否存在", () => {
+    const manager = new StorageManager();
+
+    expect(manager.hasFileStorage("files")).toBe(false);
+    expect(manager.hasKVStorage("cache")).toBe(false);
+
+    manager.getFileStorage("files");
+    manager.getKVStorage("cache");
+
+    expect(manager.hasFileStorage("files")).toBe(true);
+    expect(manager.hasKVStorage("cache")).toBe(true);
+  });
+
+  it("应该移除存储", () => {
+    const manager = new StorageManager();
+
+    manager.getFileStorage("files");
+    manager.getKVStorage("cache");
+
+    manager.removeFileStorage("files");
+    manager.removeKVStorage("cache");
+
+    expect(manager.hasFileStorage("files")).toBe(false);
+    expect(manager.hasKVStorage("cache")).toBe(false);
+  });
+
+  it("应该获取所有存储名称", () => {
+    const manager = new StorageManager();
+
+    manager.getFileStorage("files1");
+    manager.getFileStorage("files2");
+    manager.getKVStorage("cache1");
+    manager.getKVStorage("cache2");
+
+    const fileNames = manager.getFileStorageNames();
+    const kvNames = manager.getKVStorageNames();
+
+    expect(fileNames).toContain("files1");
+    expect(fileNames).toContain("files2");
+    expect(kvNames).toContain("cache1");
+    expect(kvNames).toContain("cache2");
+  });
+
+  it("应该清空所有存储实例", () => {
+    const manager = new StorageManager();
+
+    manager.getFileStorage("files");
+    manager.getKVStorage("cache");
+
+    manager.clear();
+
+    expect(manager.getFileStorageNames().length).toBe(0);
+    expect(manager.getKVStorageNames().length).toBe(0);
+  });
+});
+
+describe("StorageManager ServiceContainer 集成", () => {
+  it("应该设置和获取服务容器", () => {
+    const manager = new StorageManager();
+    const container = new ServiceContainer();
+
+    expect(manager.getContainer()).toBeUndefined();
+
+    manager.setContainer(container);
+    expect(manager.getContainer()).toBe(container);
+  });
+
+  it("应该从服务容器获取 StorageManager", () => {
+    const container = new ServiceContainer();
+    const manager = new StorageManager({ name: "test" });
+    manager.setContainer(container);
+
+    container.registerSingleton("storage:test", () => manager);
+
+    const retrieved = StorageManager.fromContainer(container, "test");
+    expect(retrieved).toBe(manager);
+  });
+
+  it("应该在服务不存在时返回 undefined", () => {
+    const container = new ServiceContainer();
+    const retrieved = StorageManager.fromContainer(container, "non-existent");
+    expect(retrieved).toBeUndefined();
+  });
+
+  it("应该支持多个 StorageManager 实例", () => {
+    const container = new ServiceContainer();
+
+    const localManager = new StorageManager({ name: "local" });
+    localManager.setContainer(container);
+
+    const cloudManager = new StorageManager({ name: "cloud" });
+    cloudManager.setContainer(container);
+
+    container.registerSingleton("storage:local", () => localManager);
+    container.registerSingleton("storage:cloud", () => cloudManager);
+
+    expect(StorageManager.fromContainer(container, "local")).toBe(localManager);
+    expect(StorageManager.fromContainer(container, "cloud")).toBe(cloudManager);
+  });
+});
+
+describe("createStorageManager 工厂函数", () => {
+  it("应该创建 StorageManager 实例", () => {
+    const manager = createStorageManager();
+    expect(manager).toBeInstanceOf(StorageManager);
+  });
+
+  it("应该使用默认名称", () => {
+    const manager = createStorageManager();
+    expect(manager.getName()).toBe("default");
+  });
+
+  it("应该使用自定义名称", () => {
+    const manager = createStorageManager({ name: "custom" });
+    expect(manager.getName()).toBe("custom");
+  });
+
+  it("应该能够在服务容器中注册", () => {
+    const container = new ServiceContainer();
+
+    container.registerSingleton(
+      "storage:main",
+      () => createStorageManager({ name: "main" }),
+    );
+
+    const manager = container.get<StorageManager>("storage:main");
+    expect(manager).toBeInstanceOf(StorageManager);
+    expect(manager.getName()).toBe("main");
+  });
+
+  it("应该支持自定义路径", () => {
+    const manager = createStorageManager({
+      defaultBasePath: "./custom-storage",
+      defaultKVBasePath: "./custom-kv",
+    });
+
+    expect(manager).toBeInstanceOf(StorageManager);
   });
 });

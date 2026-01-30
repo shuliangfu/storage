@@ -1,9 +1,10 @@
 # @dreamer/storage/client
 
-> 一个用于浏览器的存储工具库，提供统一的存储接口，支持 localStorage、sessionStorage 和 IndexedDB
+> 一个用于浏览器的存储工具库，提供统一的存储接口，支持
+> localStorage、sessionStorage 和 IndexedDB
 
 [![JSR](https://jsr.io/badges/@dreamer/storage/client)](https://jsr.io/@dreamer/storage/client)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../LICENSE.md)
 
 ---
 
