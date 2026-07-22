@@ -7,6 +7,33 @@
 
 ---
 
+## [1.1.0] - 2026-07-23
+
+### 新增
+
+- **Node.js 兼容**：存储抽象现可在 Node 22+ 运行——本包为纯逻辑，无运行时
+  专属 API（无 `Deno.*`、无 `IS_NODE` 分支、无 i18n locale）；文件系统操作经
+  `@dreamer/runtime-adapter` v1.2.2（已支持 Node），服务容器集成经
+  `@dreamer/service` v1.1.0（已支持 Node）。`src/` 未改动。
+- **Node.js 测试基建**：新增 `package.json`、`tsconfig.json`，以及三平台 Node CI
+  任务（Linux/macOS/Windows，Node 22），由
+  `tsx --test --test-force-exit tests/*.test.ts` 驱动；Deno/Bun/Node 共享同一套
+  `tests/*.test.ts`。
+
+### 变更
+
+- **依赖**：`@dreamer/service` ^1.1.0、`@dreamer/runtime-adapter` ^1.2.2、
+  `@dreamer/test` ^1.2.3。
+- **CI**：Deno 升至 v2.9；新增 Deno/Bun/Node 三平台共 9 个 CI 任务。
+- **发布**：`jsr publish` 不再使用 `--no-check`（更严格的发布门禁）。
+
+### 兼容性
+
+- Deno 2.9+ / Bun 1.3+ / Node.js 22+
+- 浏览器（用于 `@dreamer/storage/client`）
+
+---
+
 ## [1.0.0] - 2026-02-19
 
 ### 新增

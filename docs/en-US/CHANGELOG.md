@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.1.0] - 2026-07-23
+
+### Added
+
+- **Node.js compatibility**: Storage abstraction now runs on Node 22+ — the
+  package is pure logic with no runtime-specific APIs (no `Deno.*`, no `IS_NODE`
+  branch, no i18n locale); file-system operations go through
+  `@dreamer/runtime-adapter` v1.2.2 (Node-supported), and service-container
+  integration through `@dreamer/service` v1.1.0 (Node-supported). `src/` is
+  unchanged.
+- **Node.js test infra**: Added `package.json`, `tsconfig.json`, and a 3-platform
+  Node CI job (Linux/macOS/Windows, Node 22) driven by
+  `tsx --test --test-force-exit tests/*.test.ts`; the same `tests/*.test.ts`
+  suite is shared across Deno/Bun/Node.
+
+### Changed
+
+- **Dependencies**: `@dreamer/service` ^1.1.0, `@dreamer/runtime-adapter` ^1.2.2,
+  `@dreamer/test` ^1.2.3.
+- **CI**: Deno bumped to v2.9; added 9 CI jobs across Deno/Bun/Node (3 platforms
+  each).
+- **Publish**: `jsr publish` no longer uses `--no-check` (stricter release gate).
+
+### Compatibility
+
+- Deno 2.9+ / Bun 1.3+ / Node.js 22+
+- Browser (for `@dreamer/storage/client`)
+
+---
+
 ## [1.0.0] - 2026-02-19
 
 ### Added

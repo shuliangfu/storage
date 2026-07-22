@@ -2,16 +2,21 @@
 
 ## 📋 Overview
 
-| Item                | Details                         |
-| ------------------- | ------------------------------- |
-| **Package version** | `@dreamer/storage@1.0.0-beta.4` |
-| **Service version** | `@dreamer/service@1.0.0-beta.4` |
-| **Test date**       | 2026-01-30                      |
-| **Test framework**  | `@dreamer/test`                 |
-| **Total tests**     | 45                              |
-| **Passed**          | 45                              |
-| **Failed**          | 0                               |
-| **Coverage**        | 100%                            |
+| Item                | Details                                  |
+| ------------------- | ---------------------------------------- |
+| **Package version** | `@dreamer/storage@1.1.0`                 |
+| **Service version** | `@dreamer/service@1.1.0`                 |
+| **Test date**       | 2026-07-23                               |
+| **Test framework**  | `@dreamer/test@^1.2.3`                   |
+| **Test environment**| Deno 2.9+ / Bun 1.3+ / Node.js 22+       |
+| **Total tests**     | 46 (Deno) / 45 (Bun) / 45 (Node)         |
+| **Passed**          | 46 / 45 / 45                             |
+| **Failed**          | 0 / 0 / 0                                |
+| **Coverage**        | 100%                                     |
+
+> The Deno test runner counts one parent suite in the total, so Deno reports 46
+> while Bun/Node report 45; the actual cases are identical across runtimes, all
+> with 0 failures.
 
 ## 📁 Test files
 
@@ -111,7 +116,7 @@
 
 ## 🎯 Conclusion
 
-- ✅ All 45 tests passed
+- ✅ All three runtimes (Deno/Bun/Node) passed: 46 / 45 / 45, 0 failures
 - ✅ File storage adapter behavior covered
 - ✅ File storage behavior covered
 - ✅ Key-value storage behavior covered
@@ -121,4 +126,4 @@
 
 ---
 
-_Test report last updated: 2026-01-30_
+_Test report last updated: 2026-07-23 (v1.1.0 three-runtime verification)_
